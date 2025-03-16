@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>键盘打飞机训练游戏</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', '微软雅黑', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .game-info div {
+            padding: 5px 10px;
+        }
+        
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #e0f7fa;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            border: 3px solid #81d4fa;
+        }
+        
+        .plane {
+            position: absolute;
+            font-size: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        
+        .plane-char {
+            background-color: #ff9e80;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .plane-body {
+            width: 30px;
+            height: 20px;
+            background-color: #ffcc80;
+            border-radius: 5px 5px 0 0;
+            margin-top: -5px;
+        }
+        
+        .plane-wings {
+            display: flex;
+            margin-top: -5px;
+        }
+        
+        .wing {
+            width: 15px;
+            height: 10px;
+            background-color: #b3e5fc;
+            border-radius: 5px;
+        }
+        
+        .explosion {
+            position: absolute;
+            font-size: 40px;
+            animation: explode 0.5s forwards;
+            z-index: 10;
+        }
+        
+        @keyframes explode {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button {
+            background-color: #64b5f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            background-color: #42a5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .difficulty-selector {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .difficulty-selector label {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #0277bd;
+        }
+        
+        .difficulty-selector input {
+            width: 200px;
+        }
+        
+        .difficulty-value {
+            margin-left: 10px;
+            font-weight: bold;
+            color: #ff6b6b;
+            width: 30px;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .game-over h2 {
+            color: #ff6b6b;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .game-over button {
+            margin-top: 20px;
+            background-color: #ff6b6b;
+        }
+        
+        .game-over button:hover {
+            background-color: #ff5252;
+        }
+        
+        .stats {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .cloud {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            z-index: -1;
+            animation: float linear infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100vw); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>键盘打飞机训练游戏</h1>
+        
+        <div class="game-info">
+            <div>得分: <span id="score">0</span></div>
+            <div>生命值: <span id="lives">3</span></div>
+            <div>等级: <span id="level">1</span></div>
+            <div>时间: <span id="time">0</span>秒</div>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="game-over" id="gameOver">
+                <h2>游戏结束!</h2>
+                <div>最终得分: <span id="finalScore">0</span></div>
+                <div>坚持时间: <span id="finalTime">0</span>秒</div>
+                <div class="stats">
+                    <div>正确率: <span id="accuracy">0</span>%</div>
+                    <div>每分钟击键数: <span id="kpm">0</span></div>
+                </div>
+                <button id="restartButton">再来一次</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startButton">开始游戏</button>
+            <button id="pauseButton" disabled>暂停</button>
+            
+            <div class="difficulty-selector">
+                <label for="difficulty">难度级别:</label>
+                <input type="range" id="difficulty" min="1" max="10" value="1">
+                <span class="difficulty-value" id="difficultyValue">1</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏变量
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let gameTime = 0;
+        let gameRunning = false;
+        let gamePaused = false;
+        let gameInterval;
+        let timeInterval;
+        let planes = [];
+        let difficulty = 1;
+        let keysPressed = 0;
+        let correctKeys = 0;
+        
+        // DOM 元素
+        const gameArea = document.getElementById('gameArea');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const levelElement = document.getElementById('level');
+        const timeElement = document.getElementById('time');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const difficultySlider = document.getElementById('difficulty');
+        const difficultyValue = document.getElementById('difficultyValue');
+        const gameOverScreen = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalTimeElement = document.getElementById('finalTime');
+        const accuracyElement = document.getElementById('accuracy');
+        const kpmElement = document.getElementById('kpm');
+        const restartButton = document.getElementById('restartButton');
+        
+        // 事件监听器
+        startButton.addEventListener('click', startGame);
+        pauseButton.addEventListener('click', togglePause);
+        difficultySlider.addEventListener('input', updateDifficulty);
+        restartButton.addEventListener('click', restartGame);
+        document.addEventListener('keydown', handleKeyPress);
+        
+        // 更新难度显示和等级
+        function updateDifficulty() {
+            difficulty = parseInt(difficultySlider.value);
+            difficultyValue.textContent = difficulty;
+            
+            // 游戏未开始时，同步更新等级显示
+            if (!gameRunning) {
+                level = difficulty;
+                levelElement.textContent = level;
+            }
+        }
+        
+        // 创建云朵背景
+        function createClouds() {
+            for (let i = 0; i < 10; i++) {
+                createCloud();
+            }
+            
+            // 存储云朵创建的定时器ID，以便在游戏结束时清除
+            window.cloudInterval = setInterval(createCloud, 5000);
+        }
+        
+        function createCloud() {
+            if (!gameRunning) return; // 游戏结束时不创建新云朵
+            
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            
+            const size = Math.random() * 100 + 50;
+            const top = Math.random() * gameArea.offsetHeight;
+            const duration = Math.random() * 60 + 60;
+            
+            cloud.style.width = `${size}px`;
+            cloud.style.height = `${size / 2}px`;
+            cloud.style.top = `${top}px`;
+            cloud.style.right = `-${size}px`;
+            cloud.style.animationDuration = `${duration}s`;
+            
+            gameArea.appendChild(cloud);
+            
+            setTimeout(() => {
+                if (cloud && cloud.parentNode === gameArea) {
+                    gameArea.removeChild(cloud);
+                }
+            }, duration * 1000);
+        }
+        
+        // 开始游戏
+        function startGame() {
+            if (gameRunning) {
+                // 如果游戏已经在运行，则重新开始游戏
+                resetGame();
+                gameRunning = true;
+                gamePaused = false;
+            } else {
+                // 首次开始游戏
+                resetGame();
+                gameRunning = true;
+                gamePaused = false;
+                
+                // 更改开始按钮文本为"重新开始"
+                startButton.textContent = "重新开始";
+                pauseButton.disabled = false;
+                difficultySlider.disabled = true;
+            }
+            
+            // 开始生成飞机
+            gameInterval = setInterval(createPlane, getPlaneInterval());
+            
+            // 开始计时
+            timeInterval = setInterval(() => {
+                if (!gamePaused) {
+                    gameTime++;
+                    timeElement.textContent = gameTime;
+                    
+                    // 每30秒提高一个等级，最高到10级
+                    if (gameTime % 30 === 0 && level < 10) {
+                        level++;
+                        levelElement.textContent = level;
+                        
+                        // 调整飞机生成速度
+                        clearInterval(gameInterval);
+                        gameInterval = setInterval(createPlane, getPlaneInterval());
+                    }
+                }
+            }, 1000);
+            
+            createClouds();
+        }
+        
+        // 根据难度和等级计算飞机生成间隔
+        function getPlaneInterval() {
+            // 基础间隔为2000ms，随难度和等级减少
+            const baseInterval = 2000;
+            const difficultyFactor = difficulty * 100;
+            const levelFactor = level * 50;
+            
+            // 最小间隔为200ms
+            return Math.max(200, baseInterval - difficultyFactor - levelFactor);
+        }
+        
+        // 创建飞机
+        function createPlane() {
+            if (gamePaused) return;
+            
+            const plane = document.createElement('div');
+            plane.className = 'plane';
+            
+            // 创建飞机外观
+            const planeChar = document.createElement('div');
+            planeChar.className = 'plane-char';
+            
+            // 随机选择一个字符
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const randomChar = chars.charAt(Math.floor(Math.random() * chars.length));
+            planeChar.textContent = randomChar;
+            
+            // 创建飞机身体
+            const planeBody = document.createElement('div');
+            planeBody.className = 'plane-body';
+            
+            // 创建飞机翅膀
+            const planeWings = document.createElement('div');
+            planeWings.className = 'plane-wings';
+            
+            const leftWing = document.createElement('div');
+            leftWing.className = 'wing';
+            
+            const rightWing = document.createElement('div');
+            rightWing.className = 'wing';
+            
+            planeWings.appendChild(leftWing);
+            planeWings.appendChild(rightWing);
+            
+            plane.appendChild(planeChar);
+            plane.appendChild(planeBody);
+            plane.appendChild(planeWings);
+            
+            // 随机位置
+            const top = Math.random() * (gameArea.offsetHeight - 60);
+            
+            plane.style.top = `${top}px`;
+            plane.style.right = '0';
+            
+            // 随机颜色
+            const hue = Math.floor(Math.random() * 360);
+            planeChar.style.backgroundColor = `hsl(${hue}, 80%, 65%)`;
+            planeBody.style.backgroundColor = `hsl(${hue}, 70%, 75%)`;
+            leftWing.style.backgroundColor = `hsl(${hue - 20}, 60%, 85%)`;
+            rightWing.style.backgroundColor = `hsl(${hue - 20}, 60%, 85%)`;
+            
+            gameArea.appendChild(plane);
+            
+
+             // 存储飞机信息
+            const planeInfo = {
+                element: plane,
+                char: randomChar,
+                speed: 1 + (difficulty * 0.2) + (level * 0.1)
+            };
+            
+            planes.push(planeInfo);
+            
+            // 启动飞机移动
+            movePlane(planeInfo);
+        }
+        
+        // 移动飞机
+        function movePlane(planeInfo) {
+            const plane = planeInfo.element;
+            let position = parseInt(plane.style.right) || 0;
+
+            function animate() {
+                if (!gamePaused && gameRunning) {
+                    position += planeInfo.speed;
+                    plane.style.right = `${position}px`;
+
+                    // 边界检测 - 检测左侧边缘
+                    if (position > gameArea.offsetWidth) {
+                        // 飞机触碰到左侧边缘
+                        // 移除越界的飞机
+                        if (plane.parentNode === gameArea) {
+                            gameArea.removeChild(plane);
+                        }
+                        const index = planes.indexOf(planeInfo);
+                        if (index > -1) {
+                            planes.splice(index, 1);
+                        }
+                        // 扣除生命值
+                        lives--;
+                        livesElement.textContent = lives;
+                        if (lives <= 0) {
+                            endGame();
+                        }
+                    } else {
+                        planeInfo.animationFrame = requestAnimationFrame(animate);
+                    }
+                }
+            }
+            animate();
+        }
+        
+        // 处理键盘输入
+        function handleKeyPress(event) {
+            if (!gameRunning || gamePaused) return;
+            
+            const key = event.key.toUpperCase();
+            keysPressed++;
+            
+            // 查找匹配的飞机
+            const matchingPlaneIndex = planes.findIndex(plane => plane.char === key);
+            
+            if (matchingPlaneIndex !== -1) {
+                // 击中飞机
+                const planeInfo = planes[matchingPlaneIndex];
+                const plane = planeInfo.element;
+                
+                // 创建爆炸效果
+                createExplosion(plane);
+                
+                // 移除飞机
+                if (plane && plane.parentNode === gameArea) {
+                    gameArea.removeChild(plane);
+                }
+                planes.splice(matchingPlaneIndex, 1);
+                
+                // 增加分数
+                score += 10 * difficulty;
+                scoreElement.textContent = score;
+                
+                // 记录正确按键
+                correctKeys++;
+            }
+        }
+        
+        // 创建爆炸效果
+        function createExplosion(plane) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = '💥';
+            
+            // 获取飞机位置
+            const rect = plane.getBoundingClientRect();
+            const gameRect = gameArea.getBoundingClientRect();
+            
+            // 设置爆炸位置
+            explosion.style.top = `${rect.top - gameRect.top}px`;
+            explosion.style.left = `${rect.left - gameRect.left}px`;
+            
+            gameArea.appendChild(explosion);
+            
+            // 移除爆炸效果
+            setTimeout(() => {
+                if (explosion && explosion.parentNode === gameArea) {
+                    gameArea.removeChild(explosion);
+                }
+            }, 500);
+        }
+        
+        // 暂停/继续游戏
+        function togglePause() {
+            if (!gameRunning) return;
+            
+            gamePaused = !gamePaused;
+            pauseButton.textContent = gamePaused ? '继续' : '暂停';
+            
+            // 如果恢复游戏，重新启动所有飞机的移动
+            if (!gamePaused) {
+                planes.forEach(planeInfo => {
+                    // 取消之前的动画帧，防止重复调用
+                    if (planeInfo.animationFrame) {
+                        cancelAnimationFrame(planeInfo.animationFrame);
+                    }
+                    // 重新开始移动
+                    movePlane(planeInfo);
+                });
+            }
+        }
+        
+        // 结束游戏
+        function endGame() {
+            gameRunning = false;
+            gamePaused = true; // 确保游戏暂停
+            
+            // 清除定时器
+            clearInterval(gameInterval);
+            clearInterval(timeInterval);
+            clearInterval(window.cloudInterval); // 清除云朵创建的定时器
+            
+            // 停止所有飞机
+            planes.forEach(planeInfo => {
+                if (planeInfo.animationFrame) {
+                    cancelAnimationFrame(planeInfo.animationFrame);
+                }
+            });
+            
+            // 停止所有云朵动画
+            const clouds = gameArea.querySelectorAll('.cloud');
+            clouds.forEach(cloud => {
+                cloud.style.animationPlayState = 'paused';
+            });
+            
+            // 显示游戏结束界面
+            gameOverScreen.style.display = 'flex';
+            
+            // 更新最终统计信息
+            finalScoreElement.textContent = score;
+            finalTimeElement.textContent = gameTime;
+            
+            // 计算正确率
+            const accuracy = keysPressed > 0 ? Math.round((correctKeys / keysPressed) * 100) : 0;
+            accuracyElement.textContent = accuracy;
+            
+            // 计算每分钟击键数
+            const minutes = gameTime / 60;
+            const kpm = minutes > 0 ? Math.round(keysPressed / minutes) : 0;
+            kpmElement.textContent = kpm;
+            
+            // 重置按钮状态
+            startButton.disabled = false;
+            pauseButton.disabled = true;
+            difficultySlider.disabled = false;
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            startGame();
+        }
+        
+        // 重置游戏状态
+        function resetGame() {
+            // 重置变量
+            score = 0;
+            lives = 3;
+            // 使用当前选择的难度作为初始等级
+            level = parseInt(difficultySlider.value);
+            gameTime = 0;
+            keysPressed = 0;
+            correctKeys = 0;
+            
+            // 更新显示
+            scoreElement.textContent = score;
+            livesElement.textContent = lives;
+            levelElement.textContent = level;
+            timeElement.textContent = gameTime;
+            
+            // 清除所有飞机
+            planes.forEach(planeInfo => {
+                if (planeInfo.element.parentNode === gameArea) {
+                    gameArea.removeChild(planeInfo.element);
+                }
+            });
+            planes = [];
+            
+            // 清除所有云朵
+            const clouds = gameArea.querySelectorAll('.cloud');
+            clouds.forEach(cloud => {
+                if (cloud.parentNode === gameArea) {
+                    gameArea.removeChild(cloud);
+                }
+            });
+            
+            // 隐藏游戏结束界面
+            gameOverScreen.style.display = 'none';
+        }
+        
+        // 初始化难度显示
+        updateDifficulty();
+    </script>
+</body>
+</html>
